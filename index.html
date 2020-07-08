@@ -1,0 +1,1119 @@
+<!doctype html>
+<html>
+<head><title>seven poker</title></head>
+<style>
+@font-face {
+	font-family: 'a이끌림M';
+	src: url(./fonts/a이끌림M.ttf) format('truetype');
+}
+
+@font-face {
+	font-family: 'a오름M';
+	src: url(./fonts/a오름M.ttf) format('truetype');
+}
+
+html {
+	max-width: 100%; max-height: 100%; 
+	width: 900px;
+	color: lightgray; 
+	background-color: black; 
+	margin-left: auto; 
+	margin-right: auto; 
+	padding: 0px;
+	font-family: 'a이끌림M';
+	font-size: 13pt;
+	text-align:center;
+}
+
+body {
+	position: absolute;
+	width: 900px;
+	max-width:100%; height:800px; 
+	background-image: url("./img/background.png");
+	background-repeat: no-repeat;
+	background-size: 100%;
+	margin:0;
+}
+
+.header {
+	position:relative;
+	width: 900px;
+	max-width:100%; height:100%; 
+	padding-top: 5px;
+	height:24px; 
+	background-color: #1c1c1c;
+}
+
+.section {
+	position:relative;
+	width: 900px; height:800px;
+	max-width:100%; 
+}
+
+.copyright {
+	position:absolute;
+	left:-1px; 
+	bottom:-10px; 
+	height:108px; 
+	line-height:24px; 
+	width: 100%;
+	font-size: 13px;
+}
+
+.nameContainer {
+	width: 16.2%; height: 4%;
+	text-align: center;
+	margin-top: 1px;
+	font-size: 20px;
+}
+
+#nameContainer1 {
+	position: absolute;
+	left: 13%; top: 18%;
+}
+
+#nameContainer2 {
+	position: absolute;
+	left: 13%; top: 71%;
+}
+
+.cardContainer {
+	width: 54%; height: 18%;
+	padding-top: 15px;
+	text-align: center;
+}
+
+.divCard {
+	width: 12%; height: auto;
+	vertical-align: middle;
+	display: inline-block;
+	padding-right: 7px;
+	box-shadow: -7px 0 10px -8px black;
+}
+
+.divCard > img {
+	width: 80px; height: auto;
+}
+
+#cardContainer1 {
+	position: absolute;
+	left: 32%; top: 3%;
+}
+
+#cardContainer2 {
+	position: absolute;
+	left: 32%; top: 56%;
+}
+
+#winBoard {
+	position: absolute;
+	width: 22%; height: 6%;
+	left: 39%; top: 47%;
+	font-size: 25px;
+	font-family: 'a오름M';
+	color: #E6BD60
+}
+
+#scoreBoard {
+	position: absolute;
+	width: 40%; height: 40%;
+	left: 32%; top: 15%;
+	font-size: 19px;
+}
+
+#scoreTxt1 {
+	position: absolute;
+	width: 20%; height: 30%;
+	left: 27%; top: 28%;
+	text-align: left;
+}
+
+#scoreTxt2 {
+	position: absolute;
+	width: 30%; height: 30%;
+	left: 47%; top: 28%;
+	text-align: center;
+}
+
+.btn {
+	height: 57px;
+	width: 57px;
+	border-radius: 50%;
+	padding: 0px;
+	border: none;
+	cursor:pointer;
+	background-color: black;
+}
+
+#btn_reset {
+	position: absolute;
+	left: 73%; top: 36%;
+}
+
+#btn_score {
+	position: absolute;
+	left: 20%; top: 36%;
+}
+</style>
+<body onload="printPlayer('player1'); printPlayer('player2'); initGame();	printWinner();">
+<script>
+//////////////////////////////////////////////////////////////////////
+//	출력 관련 함수
+//////////////////////////////////////////////////////////////////////
+
+var	number = '23456789TJQKA';
+var	symbol = 'CHDS';
+
+// 파라미터 읽어옴
+function getParameter(sname)
+{
+	var params = location.search.substr(location.search.indexOf("?")+1);
+	var sval = "";
+	
+	params = params.split("&");
+	for (var i = 0; i < params.length; i++)
+	{
+		temp = params[i].split("=");
+		if ([temp[0]] == sname) {sval = temp[1];}
+	}
+	sval = decodeURI(decodeURIComponent(sval));
+	return sval;
+}
+
+// 플레이어 이름 출력
+function printPlayer(sparam)
+{
+	if (sparam == "player1")
+	{
+		var obj1 = document.getElementById("nameContainer1");
+		player1 = getParameter('player1');
+		
+		if (player1 == undefined || player1 == 0)
+			player1 = "Player1";
+		obj1.innerHTML = player1;
+	}
+	else if (sparam == "player2")
+	{
+		var obj2 = document.getElementById("nameContainer2");
+		player2 = getParameter('player2');
+		if (player2 == undefined || player2 == 0)
+			player2 = "Player2";
+		obj2.innerHTML = player2;
+	}
+}
+
+// 랜덤 카드 생성
+function getCard()
+{
+	var set = '';
+
+	set += number.charAt(Math.floor(Math.random() * 13));
+	set += symbol.charAt(Math.floor(Math.random() * 4));
+	return (set);
+}
+
+// cardSet에서 중복된 카드가 있는지 확인
+function is_dup(tmp_set, tmp_card)
+{
+	var i;
+	
+	i = 0;
+	while (i < tmp_set.length)
+	{
+		if (tmp_set[i++] == tmp_card)
+			return (1);
+	}
+	return (0);
+}
+
+// 7장의 cardSet 생성
+function getCardset(existSet)
+{
+	var set = new Array(7).fill(0);
+	var i;
+	var tmp_set;
+	var tmp_card;
+	
+	i = 0;
+	while (i < 7)
+	{
+		tmp_set = set.concat(existSet);
+		tmp_card = getCard();
+		if (is_dup(tmp_set, tmp_card))
+		{
+			i--;
+			continue;
+		}
+		set[i++] = tmp_card;
+	}
+	return (set);
+}
+
+// 2 쌍의 cardset 출력
+function printCardset(set)
+{
+	var i = 0;
+	var src = "./img/";
+	var parent;
+
+	if (set == cardSet1)
+		parent = document.getElementById('cardContainer1');
+	else
+		parent = document.getElementById('cardContainer2');
+	while (i < 7)
+	{
+		var newDiv = document.createElement('div');
+		var img = document.createElement('img');
+		
+		newDiv.className = 'divCard';
+		img.src = src + set[i] + '.png';
+		newDiv.appendChild(img);
+		parent.appendChild(newDiv);
+		i++;
+	}
+}
+
+// Game 갱신
+function initGame()
+{
+	var parent1 = document.getElementById('cardContainer1');
+	var parent2 = document.getElementById('cardContainer2');
+	
+	while (parent1.firstChild) {
+		parent1.removeChild(parent1.firstChild);
+	}
+	while (parent2.firstChild) {
+		parent2.removeChild(parent2.firstChild);
+	}
+	cardSet1 = getCardset();
+	cardSet2 = getCardset(cardSet1);
+	printCardset(cardSet1);
+	printCardset(cardSet2);
+}
+
+// winner 출력
+function printWinner()
+{
+	var str = '';
+	
+	str += judgeGame(cardSet1, cardSet2);
+	document.getElementById('winBoard').innerHTML = str;	
+}
+
+function printScore()
+{
+	var obj = document.getElementById("content");
+	var imgDiv = document.createElement("div");
+	var txtDiv1 = document.createElement("div");
+	var txtDiv2 = document.createElement("div");
+	var imgStr  = '';
+	var txtStr1  = '';
+	var txtStr2  = '';
+	
+	imgStr += "<img src='./img/scoreBoard.png' style='width: 340px; height: auto;'>";
+	imgDiv.innerHTML = imgStr;
+	imgDiv.setAttribute("id", "scoreBoard");
+	
+	txtStr1 += "winner.<br>";
+	txtStr1 += "score1.<br>";
+	txtStr1 += "score2.<br>";
+	txtStr1 += "num1.<br>";
+	txtStr1 += "num2.<br>";
+	txtStr1 += "symbol1.<br>";
+	txtStr1 += "symbol2.<br>";
+	txtDiv1.innerHTML = txtStr1;
+	txtDiv1.setAttribute("id", "scoreTxt1");
+	
+	txtStr2 += winner + "<br>";
+	txtStr2 += result1.score + "<br>";
+	txtStr2 += result2.score + "<br>";
+	txtStr2 += result1.highest + "<br>";
+	txtStr2 += result2.highest + "<br>";
+	txtStr2 += result1.sym + "<br>";
+	txtStr2 += result2.sym + "<br>";
+	txtDiv2.innerHTML = txtStr2;
+	txtDiv2.setAttribute("id", "scoreTxt2");
+	
+	imgDiv.onclick = function() {
+		var p = this.parentElement;
+		p.removeChild(this);
+	};
+	
+	obj.appendChild(imgDiv);	
+	imgDiv.appendChild(txtDiv1);
+	imgDiv.appendChild(txtDiv2);
+}
+
+//////////////////////////////////////////////////////////////////////
+//	게임 관련 함수
+//////////////////////////////////////////////////////////////////////
+
+/* 
+** 결과를 저장할 객체 초기화
+*/ 
+function initObject(obj)
+{
+	obj.score = 0;
+	obj.highest = 0;
+	obj.sym = 0;
+}
+
+/* 
+** [숫자, 무늬]의 문자 배열로 표현된 카드를 숫자 배열로 변환
+** ex. [A, D] => [14, 3]
+*/ 
+function convertArray(set)
+{
+	var i;
+	var conv = new Array(7);
+	
+	i = 0;
+	// 이차원 배열 생성
+	while (i < 7)
+	{
+		conv[i] = new Array(2);
+		i++;
+	}
+	i = 0;
+	// 새로운 배열에 변환된 값 저장
+	while (i < 7)
+	{
+		conv[i][0] = number.indexOf(set[i][0]) + 2;
+		conv[i][1] = symbol.indexOf(set[i][1]) + 1;
+		i++;
+	}
+	return (conv);
+}
+
+/* 
+** 2차원 배열 set에서 symb 개수 카운트
+*/
+function countSymb(set, symb)
+{
+	var i;
+	var cnt;
+	
+	i = 0;
+	cnt = 0;
+	
+	while (i < set.length)
+	{
+		if (set[i][1] == symb)
+			cnt++;
+		i++;
+	}
+	return (cnt);
+}
+
+/*
+** 배열이 내림차순으로 정렬되어 있을 때, 1씩 감소하는 패턴 카운트
+** ex. 13, 12, 11, 10, 9 => 4
+**     (cnt + 1 리턴:  연속된 카드 개수 출력)
+*/
+function cntSequence(set)
+{
+	var i;
+	var cnt;
+	
+	i = 0;
+	cnt = 1;
+	while (i < set.length - 1)
+	{
+		if ((set[i][0] - set[i + 1][0]) == 1)
+			cnt++;
+		else 
+			cnt = 1;
+		i++;
+	}
+	return (cnt + 1);
+}
+
+/*
+**  2차원 배열 set에서 num가 위치한 첫번째 index 리턴
+**  indexOf 메소드와 동일 (2차원 배열에서 사용하기 위함)
+*/
+function isNumbIn(set, numb)
+{
+	var i;
+	
+	i = 0;
+	while (i < set.length)
+	{
+		if (set[i][0] == numb)
+			return (i);
+		i++;
+	}
+	return (-1);
+}
+
+/*
+**	(11) Straight Flush : 카드 5장이 모두 무늬가 같고, 숫자가 연달아 있을 때
+** 	(12) Back Straight Flush: 5, 4, 3, 2, A
+**  (13) Royal Straight Flush: A, K, Q, J, T
+**  동률 비교: 1. 가장 높은 숫자, 가장 높은 숫자의 모양
+*/
+function StraightFlush(set, result)
+{
+	var i;
+	var j;
+	var cnt;
+	
+	i = 1;
+	// 5개 이상인 무늬 찾기
+	while (i < 5)
+	{
+		cnt = countSymb(set, i);
+		if (cnt >= 5)
+			break ;
+		i++;
+	}
+	// 같은 무늬가 5개 미만이면 종료
+	if (cnt < 5)
+		return (0);
+		
+	// 5개 이상의 무늬 카드만 추출
+	var isSymb = function(value){
+		return (value[1] == i);
+	};	
+	var newArr = set.filter(isSymb);
+	
+	// A가 있다면, 1로 변환해서 끝에 복사
+	// Back Straight Flush를 고려하기 위함
+	var idx = isNumbIn(newArr, 14);
+	if (idx != -1)
+		newArr.push([1, newArr[idx][1]]);
+
+	// 연속된 숫자의 카드만 추출
+	// 숫자가 중복되거나 1만큼 감소하는 패턴 이용
+	// 중복: 연속된 숫자여도 무늬때문에 중복될 수 있기 때문
+	i = 0;
+	while (i < newArr.length - 1)
+	{
+		while ((i < newArr.length - 1) && ((newArr[i][0] - newArr[i + 1][0]) > 1))
+			newArr.shift();
+		
+		while ((i < newArr.length - 1) && !((newArr[i][0] - newArr[i + 1][0]) > 1))
+			i++;
+		if (i < 5)
+		{
+			j = 0;
+			while (j <= i)
+			{
+				newArr.shift();
+				j++;
+			}
+			i = 0;
+			continue ;
+		}
+		while ((i < newArr.length - 1) && ((newArr[i][0] - newArr[i + 1][0]) > 1))
+			newArr.pop();
+	}
+
+	// 무늬가 같고 연속된 카드가 5장 미만이면 종료
+	if (newArr.length < 5)
+		return (0);
+
+	// 점수 합산
+	result.score += 11;
+	result.highest = newArr[0][0];
+	result.sym = newArr[0][1];
+	 
+	// Royal Straight Flush
+	if (result.highest == 14)
+		result.score += 2;
+	// BackStraightFlush
+	else if (result.highest == 5)
+		result.score += 1;
+	return (1);
+}
+
+/*
+**  1. 동률일 때, 가장 높은 숫자 비교
+**  2. 높은 숫자의 모양으로 결정
+*/
+function draw_StraightFlush(result1, result2)
+{
+	// 가장 높은 숫자 비교
+	if (result1.highest > result2.highest)
+		return (player1);
+	else if (result1.highest < result2.highest)
+		return (player2);		
+	// 높은 숫자의 모양
+	if (result1.sym > result2.sym)
+		return (player1);
+	else if (result1.sym < result2.sym)
+		return (player2);		
+	return (0);
+}
+
+/*
+**	(10) Four of a kind : 같은 숫자의 카드 4장
+**  동률 비교: 숫자 크기
+*/
+
+function FourCard(set, result)
+{
+	var hit = new Array(15).fill(0);
+	var i;
+	
+	i = 0;
+	// 14개 숫자 별로, 카드 셋에 있는만큼 카운팅
+	while (i < set.length)
+	{
+		hit[set[i][0]]++;
+		i++;
+	}
+	// 4장 이상의 숫자가 없으면 종료
+	if (hit.indexOf(4) == -1)
+		return (0);
+	result.score = 10;
+	result.highest = hit.indexOf(4);
+	return (0);
+}
+
+/*
+**  동률일 때, 숫자 크기로 결정
+*/
+function draw_FourCard(result1, result2)
+{
+	if (result1.highest > result2.highest)
+		return (player1);
+	else if (result1.highest < result2.highest)
+		return (player2);
+	return (0);
+}
+
+/*
+**	(9) Full House : 같은 숫자 3장 (트리플) + 같은 숫자 2장 (원 페어)
+**  동률 비교: 트리플의 숫자 크기
+*/
+function FullHouse(set, result)
+{
+	var hit = new Array(15).fill(0);
+	var i;
+	
+	i = 0;
+	while (i < set.length)
+	{
+		hit[set[i][0]]++;
+		i++;
+	}
+	if ((hit.indexOf(3) == -1) || (hit.indexOf(2) == -1))
+		return (0);
+	result.score = 9;
+	result.highest = hit.indexOf(3);
+	return (1);
+}
+
+/*
+**  동률일 때, 트리플의 숫자 크기로 결정
+*/
+function draw_FullHouse(result1, result2)
+{
+	if (result1.highest > result2.highest)
+		return (player1);
+	else if (result1.highest < result2.highest)
+		return (player2);	
+	return (0);
+}
+
+/*
+**	(8) Flush : 같은 무늬 5장
+**  동률 비교: 1. 5장의 숫자를 차례대로 비교
+**			2. 모양으로 결정
+*/
+function Flush(set, result)
+{
+	var i;
+	
+	i = 0;
+	
+	while (i < 5)
+	{
+		cnt = countSymb(set, i);
+		if (cnt >= 5)
+			break ;
+		i++;
+	}
+	if (cnt < 5)
+		return (0);
+	var isSymb = function(value){
+		return (value[1] == i);
+	};	
+	var newArr = set.filter(isSymb);
+	
+	result.highest = new Array(5).fill(0);
+	
+	// 큰 숫자 5개만 저장
+	i = 0;
+	while (i < 5)
+	{
+		result.highest[i] = newArr[i][0];
+		i++;
+	}
+	result.sym = newArr[0][1];
+	result.score = 8;
+	return (1);
+}
+
+/*
+**  1. 동률일 때, 5장의 숫자를 높은 순서대로 비교
+**  2. 모든 숫자가 같으면, 모양을 높은 순서대로 비교
+*/
+function draw_Flush(result1, result2)
+{
+	var i;
+	
+	// 5장의 숫자 크기 비교
+	i = 0;
+	while (i < 5)
+	{
+		if (result1.highest[i] > result2.highest[i])
+			return (player1);
+		else if (result1.highest[i] < result2.highest[i])
+			return (player2);
+		i++;
+	}
+	
+	// 숫자가 모두 같다면, 모양으로 결정
+	i = 0;
+	if (result1.sym > result2.sym)
+		return (player1);
+	else if (result1.sym < result2.sym)
+		return (player2);
+	return (0);
+}
+
+/*
+**	(5) Straight : 연속된 숫자 5장 (무늬 상관 X)
+**  (6) Back Straight : 5, 4, 3, 2, A
+**  (7) Mountain : A, K, Q, J, 10
+**  동률 비교: 1. 높은 숫자 2. 모양을 순서대로 비교
+*/
+function Straight(set, result, tmp)
+{
+	var i;
+	var j;
+	var idx;
+	
+	// A가 있다면, 1로 변환해서 끝에 복사
+	idx = isNumbIn(set, 14);
+	if (idx != -1)
+		set.push([1, set[idx][1]]);
+		
+	// 연속된 숫자의 카드만 추출
+	i = 0;
+	while (i < set.length - 1)
+	{
+		while ((i < set.length - 1) && ((set[i][0] - set[i + 1][0]) > 1))
+			set.shift();
+		while ((i < set.length - 1) && !((set[i][0] - set[i + 1][0]) > 1))
+			i++;
+		if (i < 5)
+		{
+			j = 0;
+			while (j <= i)
+			{
+				set.shift();
+				j++;
+			}
+			i = 0;
+			continue ;
+		}
+		while ((i < set.length - 1) && ((set[i][0] - set[i + 1][0]) > 1))
+			set.pop();
+	}
+	if (cntSequence(set) < 5)
+		return (0);	
+	result.score += 5;
+	result.highest = set[0][0];
+	
+	// 무늬는 순서대로 저장
+	result.sym = new Array(5).fill(0);
+	i = 0;
+	while (i < 5)
+	{
+		// 같은 숫자 중, 가장 큰 무늬로 저장
+		result.sym[i] = set[isNumbIn(set, result.highest - i)][1];
+		i++;
+	}
+	// Mountain
+	if (result.highest == 14)
+		result.score += 2;
+	// Back Straight
+	else if (result.highest == 5)
+		result.score += 1;
+	return (1);
+}
+
+/*
+**  1. 동률일 때, 가장 높은 숫자 비교
+**  2. 숫자가 높은 순서로 모양 비교
+*/
+function draw_Straight(result1, result2)
+{
+	var i;
+	
+	// 가장 큰 숫자 비교
+	if (result1.highest > result2.highest)
+		return (player1);
+	else if (result1.highest < result2.highest)
+		return (player2);
+	// 숫자가 같다면, 숫자가 높은 순서로 모양 비교
+	while (i < 5)
+	{
+		if (result1.sym[i] > result2.sym[i])
+			return (player1);
+		else if (result1.sym[i] < result2.sym[i])
+			return (player2);
+		i++;
+	}
+	return (0);
+}
+
+/*
+**	(4) Three of a kind: 같은 숫자 3장
+**  동률 비교: 트리플 숫자 크기
+*/
+function ThreeCard(set, result)
+{
+	var hit = new Array(15).fill(0);
+	var i;
+	
+	//document.write("ThreeCard<br>");
+	i = 0;
+	while (i < set.length)
+	{
+		hit[set[i][0]]++;
+		i++;
+	}
+	if (hit.indexOf(3) == -1)
+		return (0);
+	result.score = 4;
+	result.highest = hit.indexOf(3);
+	return (1);
+}
+
+/*
+**  동률일 때, 트리플의 숫자 비교
+*/ 
+function draw_ThreeCard(result1, result2)
+{
+	//트리플의 숫자 비교
+	if (result1.highest > result2.highest)
+		return (player1);
+	else if (result1.highest < result2.highest)
+		return (player2);
+	return (0);
+}
+
+/*
+**	(3) Two pair: 같은 숫자 2쌍
+**  동률 비교: 1. 높은 페어의 숫자
+**			2. 낮은 페어의 숫자
+**			3. 높은 페어의 무늬
+*/
+function TwoPair(set, result)
+{ 
+	var hit = new Array(15).fill(0);
+	var high;
+	var i;
+	
+	//document.write("TwoPair<br>");
+	i = 0;
+	while (i < set.length)
+	{
+		hit[set[i][0]]++;
+		i++;
+	}
+	// 페어 중 숫자가 큰 2쌍만 저장
+	var tmp = new Array(2).fill(2);
+	if ((high = hit.lastIndexOf(2)) == -1) // high: 가장 큰 숫자
+		return (0);
+	tmp[0] = high;
+	if ((high = hit.lastIndexOf(2, high - 1)) == -1)
+		return (0);
+	tmp[1] = high;
+	result.highest = tmp;
+	result.score = 3;
+	result.sym = new Array(2).fill(2);
+	result.sym[0] = set[isNumbIn(set, result.highest[0])][1];
+	result.sym[1] = set[isNumbIn(set, result.highest[1])][1];
+	return (1);
+}
+
+/*
+**  1. 동률일 때, 높은 페어의 숫자 비교
+**  2. 낮은 페어의 숫자 비교
+**  3. 두 페어의 숫자가 같다면, 높은 페어의 무늬 비교
+*/
+function draw_TwoPair(result1, result2)
+{
+	var i;
+	
+	// 페어의 숫자 비교
+	i = 0;
+	while (i < 2)
+	{
+		if (result1.highest[i] > result2.highest[i])
+			return (player1);
+		else if (result1.highest[i] < result2.highest[i])
+			return (player2);
+		i++;
+	}
+	// 두 페어의 숫자가 같다면, 무늬 비교
+	i = 0;
+	while (i < 2)
+	{
+		if (result1.sym[i] > result2.sym[i])
+			return (player1);
+		else if (result1.sym[i] < result2.sym[i])
+			return (player2);
+		i++;
+	}
+	return (0);
+}
+
+/*
+**	(2) OnePair: 같은 숫자 1쌍 (2장)
+**  동률 비교: 페어의 숫자
+*/
+function OnePair(set, result)
+{
+	var hit = new Array(15).fill(0);
+	var high;
+	var i;
+	
+	//document.write("OnePair<br>");
+	i = 0;
+	while (i < set.length)
+	{
+		hit[set[i][0]]++;
+		i++;
+	}
+	if ((high = hit.lastIndexOf(2)) == -1)
+		return (0);
+	result.highest = high;
+	result.score = 2;
+	
+	// 같은 수 중, 가장 점수가 높은 무늬로 할당
+	var idx = isNumbIn(set, result.highest);
+	result.sym = set[idx][1];
+	return (1);
+}
+
+/*
+**  동률일 때, 페어의 숫자 비교
+*/
+function draw_OnePair(result1, result2)
+{
+	// 숫자 비교
+	if (result1.highest > result2.highest)
+		return (player1);
+	else if (result1.highest < result2.highest)
+		return (player2);
+	// 숫자가 같으면 무늬 비교
+	if (result1.sym > result2.sym)
+		return (player1);
+	else if (result1.sym < result2.sym)
+		return (player2);
+	return (0);
+}
+
+/*
+**	(1) HighCard: 가장 높은 숫자 1장
+**  동률 비교: 1. 높은 숫자 순으로 크기 비교
+**			2. 높은 숫자 순으로 모양 비교
+*/
+function HighCard(set, result)
+{
+	var i;
+	
+	//document.write("set: " + set + "<br>");
+	result.score = 1;
+	result.highest = new Array(7).fill(0);
+	result.sym = new Array(7).fill(0);
+	i = 0;
+	while (i < set.length)
+	{
+		result.highest[i] = set[i][0];
+		result.sym[i] = set[i][1];
+		i++;
+	}
+	return (1);
+}
+
+/*
+**  1. 동률일 때, 높은 숫자 순서대로 크기 비교
+**  2. 모든 숫자가 같을 때, 높은 숫자 순서대로 모양 비교
+*/
+function draw_HighCard(result1, result2)
+{
+	// 숫자 비교
+	var i = 0;
+	while (i < 7)
+	{
+		if (result1.highest[i] > result2.highest[i])
+			return (player1);
+		else if (result1.highest[i] < result2.highest[i])
+			return (player2);
+		i++;
+	}
+	// 숫자 비교로 끝나지 않으면, 무늬 비교
+	i = 0;
+	while (i < 7)
+	{
+		if (result1.option[i] > result2.option[i])
+			return (player1);
+		else if (result1.option[i] < result2.option[i])
+			return (player2);
+		i++;
+	}
+	return (0);
+}
+
+/*
+**  2차원 배열 깊은 복사
+*/
+function copyArray(set)
+{
+	var tmp = new Array(7);
+	var i;
+	var j;
+	
+	i = 0;
+	while (i < 7)
+	{
+		tmp[i] = new Array(2);
+		i++;
+	}
+	i = 0;
+	while (i < 7)
+	{
+		j = 0;
+		while (j < 2)
+		{
+			tmp[i][j] = set[i][j];
+			j++;
+		}
+		i++;
+	}
+	return tmp;
+}
+
+/*
+**  가능한 조합을 모두 검사하여 결과 측정
+*/
+function getRank(set, result)
+{
+	var tmp1;
+	var tmp2;
+	
+	tmp1 = copyArray(set);
+	tmp2 = copyArray(set);
+	if (StraightFlush(tmp1, result))
+		return (1);
+	if (FourCard(set, result))
+		return (1);
+	if (FullHouse(set, result))
+		return (1);
+	if (Flush(set, result))
+		return (1);
+	if (Straight(tmp2, result, set))
+		return (1);
+	if (ThreeCard(set, result))
+		return (1);
+	if (TwoPair(set, result))
+		return (1);
+	if (OnePair(set, result))
+		return (1);
+	if (HighCard(set, result))
+		return (1);
+}
+
+/*
+**  결과 2개를 비교하여 winner 리턴
+*/
+function compareScore(result1, result2)
+{
+	if (result1.score > result2.score)
+		return (player1);
+	else if (result1.score < result2.score)
+		return (player2);
+	// draw
+	else 
+	{
+		if (result1.score >= 11)
+			return (draw_StraightFlush(result1, result2));
+		if (result1.score == 10)
+			return (draw_FourCard(result1, result2));
+		if (result1.score == 9)
+			return (draw_FullHouse(result1, result2));
+		if (result1.score == 8)
+			return (draw_Flush(result1, result2));
+		if (result1.score >= 5)	
+			return (draw_Straight(result1, result2));
+		if (result1.score == 4)
+			return (draw_ThreeCard(result1, result2));
+		if (result1.score == 3)
+			return (draw_TwoPair(result1, result2));
+		if (result1.score == 2)
+			return (draw_OnePair(result1, result2));
+		if (result1.score == 1)
+			return (draw_HighCard(result1, result2));
+		return (0);
+	}
+}
+
+/*
+**  게임 판정
+*/
+function judgeGame(cardSet1, cardSet2)
+{
+	var sortSet1 = cardSet1;
+	var sortSet2 = cardSet2;
+	result1 = new Object();
+	result2 = new Object();
+
+	sortSet1 = convertArray(sortSet1);
+	sortSet2 = convertArray(sortSet2);
+	sortSet1.sort (function (a, b){
+		if (a[0] == b[0])
+			return (b[1] - a[1]);
+		return (b[0] - a[0]);
+	});
+	sortSet2.sort (function (a, b){
+		if (a[0] == b[0])
+			return (b[1] - a[1]);
+		return (b[0] - a[0]);
+	});
+
+	initObject(result1);
+	initObject(result2);
+	getRank(sortSet1, result1);
+	getRank(sortSet2, result2);
+	if ((winner = compareScore(result1, result2)) == 0)
+		return ("draw");
+	return (winner + " win");
+}
+
+</script>
+	<div class="header">
+	[ Term Project ] - [ 2015113468 ] - [ 이승재 ]
+	</div>
+	<div class="section" id="content">
+		<div class="nameContainer" id="nameContainer1"></div>
+		<div class="nameContainer" id="nameContainer2"></div>
+		<div class="cardContainer" id="cardContainer1"></div>
+		<div class="cardContainer" id="cardContainer2"></div>
+		<div id="winBoard"></div>
+		<button class="btn" id="btn_reset" value="재경기" onclick="initGame(); printWinner();">
+			<img src="./img/button_reset.png" style="width: 70px; height: auto;">
+		</button>
+		<button class="btn" id="btn_score" value="스코어" onclick="printScore();">
+			<img src="./img/button_score.png" style="width: 70px; height: auto;">
+		</button>
+	</div>
+	<footer class="copyright">(C) 2020. SELeenux all rights reserved.</footer>
+</body>
+</html>
